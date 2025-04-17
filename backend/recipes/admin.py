@@ -1,3 +1,12 @@
 from django.contrib import admin
+from recipes.models import Recipe
 
-# Register your models here.
+
+@admin.register(Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'author', 'favorites_count')
+    search_fields = ('name', 'author__username')
+    list_filter = ('tags',)
+
+    def favorites_count(self, obj):
+        return obj.favorites.count()

@@ -1,26 +1,44 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.exceptions import ValidationError
+from django.forms import ValidationError
 
 
 class User(AbstractUser):
-    email = models.EmailField(unique=True)
     username = models.CharField(
+        'Логин',
         max_length=150,
         unique=True,
         validators=[UnicodeUsernameValidator()],
-        error_messages={
-            "unique": "Пользователь с таким именем уже существует."
-        }
+        error_messages={"unique": "Пользователь с таким логином уже существует."},
+        blank=True,  # Разрешаем пустое значение
+        null=True
     )
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
+    email = models.EmailField(
+        'Email',
+        unique=True,
+        error_messages={"unique": "Пользователь с таким email уже существует."}
+    )
+    first_name = models.CharField('Имя', max_length=150)
+    last_name = models.CharField('Фамилия', max_length=150)
     avatar = models.ImageField(
-        upload_to='users/avatars/',
+        upload_to='avatars/',
         null=True,
-        blank=True
+        blank=True,  # Необязательное поле
+        verbose_name='Аватар'
     )
+    is_subscribed = models.BooleanField(
+        default=False,
+        verbose_name='Подписка'
+    )
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return self.username
 
 
 class Subscriptions(models.Model):
