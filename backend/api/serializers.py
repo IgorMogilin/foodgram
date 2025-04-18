@@ -145,7 +145,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    image = Base64ImageField(required=False, allow_null=True, allow_empty_file=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -163,12 +163,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         ]
 
     def get_image(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return ""
+        if not obj.image:  # Если нет изображения
+            return ""      # Возвращаем пустую строку
+        
+        # Если изображение есть - возвращаем полный URL
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
     def get_is_favorited(self, obj):
         user = self.context["request"].user
@@ -204,6 +206,11 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("Необходимо указать хотя бы один ингредиент")
         
+        # Проверка на дубликаты
+        ingredient_ids = [item['id'] for item in value]
+        if len(ingredient_ids) != len(set(ingredient_ids)):
+            raise serializers.ValidationError("Ингредиенты не должны повторяться")
+        
         validated_ingredients = []
         for ingredient in value:
             if 'id' not in ingredient or 'amount' not in ingredient:
@@ -234,6 +241,9 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         if 'cooking_time' in data and data['cooking_time'] < 1:
             raise serializers.ValidationError({'cooking_time': 'Время должно быть не менее 1 минуты'})
         
+        if 'image' not in data or not data['image']:
+            raise serializers.ValidationError({'image': 'Изображение обязательно'})
+            
         return data
 
     def create_ingredients(self, recipe, ingredients):
@@ -292,9 +302,14 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
     def get_image(self, obj):
-        if obj.image:
-            return obj.image.url
-        return None
+        if not obj.image:  # Если нет изображения
+            return ""      # Возвращаем пустую строку
+
+        # Если изображение есть - возвращаем полный URL
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):

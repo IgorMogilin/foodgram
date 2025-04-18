@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-import shortuuid 
+import shortuuid
 from users.models import User
 from tags.models import Tag
 from ingridients.models import Ingredient
@@ -13,7 +13,12 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1)]
     )
-    image = models.ImageField(upload_to='recipes/', blank=True, default='')
+    image = models.ImageField(
+        upload_to='recipes/',
+        blank=True,
+        default="",  # Пустая строка вместо null
+        null=False   # Запрещаем NULL в БД
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

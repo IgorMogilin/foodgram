@@ -26,6 +26,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.decorators import api_view
 import shortuuid
+from .permissions import IsRecipeAuthor
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter 
+
 
 
 @api_view(['GET'])
@@ -227,9 +231,15 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = RecipeFilter
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        if self.action in ['destroy', 'update', 'partial_update']:
+            return [IsAuthenticated(), IsRecipeAuthor()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action in ("create", "update", "partial_update"):
@@ -360,6 +370,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'id': recipe.id,
             'link': request.build_absolute_uri(recipe.get_absolute_url())
         })
+    
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            self.check_object_permissions(request, instance)
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
 
 class SubscriptionViewSet(mixins.ListModelMixin,
