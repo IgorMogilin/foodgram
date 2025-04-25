@@ -1,10 +1,11 @@
-from django.db import models
-from django.core.validators import MinValueValidator
 import shortuuid
-from users.models import User
-from tags.models import Tag
-from ingridients.models import Ingredient
+from django.core.validators import MinValueValidator
+from django.db import models
 from django.urls import reverse
+
+from ingridients.models import Ingredient
+from tags.models import Tag
+from users.models import User
 
 
 class Recipe(models.Model):
@@ -16,13 +17,13 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='recipes/',
         blank=True,
-        default="",  # Пустая строка вместо null
-        null=False   # Запрещаем NULL в БД
+        default="",
+        null=False
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes',  # ← Это даст доступ через user.recipes.all()
+        related_name='recipes',
         verbose_name='Автор'
     )
     tags = models.ManyToManyField(Tag, related_name="recipes")
@@ -30,7 +31,7 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-    
+
     def get_absolute_url(self):
         return reverse('recipe-detail', kwargs={'pk': self.pk})
 
@@ -49,18 +50,34 @@ class IngredientInRecipe(models.Model):
 
 
 class Favorite(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='favorites')  # важно!
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorites'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorites'
+    )
 
 
-class ShopingCart(models.Model):  # Лучше переименовать в ShoppingCart
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_cart')
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='shopping_cart') 
+class ShopingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart'
+    )
 
 
 class ShortLink(models.Model):
     recipe = models.OneToOneField(
-        'Recipe', 
+        'Recipe',
         on_delete=models.CASCADE,
         related_name='short_link'
     )

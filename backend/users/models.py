@@ -10,8 +10,8 @@ class User(AbstractUser):
         max_length=150,
         unique=True,
         validators=[UnicodeUsernameValidator()],
-        error_messages={"unique": "Пользователь с таким логином уже существует."},
-        blank=True,  # Разрешаем пустое значение
+        error_messages={"unique": "Логин уже занят."},
+        blank=True,
         null=True
     )
     email = models.EmailField(
@@ -24,7 +24,7 @@ class User(AbstractUser):
     avatar = models.ImageField(
         upload_to='avatars/',
         null=True,
-        blank=True,  # Необязательное поле
+        blank=True,
         verbose_name='Аватар'
     )
     is_subscribed = models.BooleanField(

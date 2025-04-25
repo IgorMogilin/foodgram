@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+
 from .models import User
 
 
@@ -10,6 +11,11 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('is_staff', 'is_superuser')
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'avatar')}),
+        ('Personal info', {'fields': (
+            'first_name',
+            'last_name',
+            'email',
+            'avatar'
+        )}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
     )

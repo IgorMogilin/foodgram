@@ -1,35 +1,29 @@
-from rest_framework import viewsets, mixins, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponse
+import shortuuid
 from django.db.models import Sum
-from users.models import User
-from recipes.models import (
-    Tag, Ingredient, Recipe, ShortLink,
-    Favorite, ShopingCart, IngredientInRecipe
-)
-from users.models import Subscriptions
-from .serializers import (
-    UserProfileSerializer, TagSerializer,
-    IngredientSerializer, RecipeSerializer,
-    RecipeCreateUpdateSerializer, SubscriptionSerializer,
-    RecipeMinifiedSerializer, CustomUserCreateSerializer,
-    EmailAuthSerializer, PasswordChangeSerializer, AvatarSerializer
-)
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django_filters.rest_framework import DjangoFilterBackend
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShopingCart, ShortLink, Tag)
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import action, api_view
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from users.models import Subscriptions, User
+
 from .filters import RecipeFilter
 from .pagination import CustomPagination
-from rest_framework.authtoken.models import Token
-from rest_framework.views import APIView
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
-from rest_framework.decorators import api_view
-import shortuuid
-from .permissions import IsRecipeAuthor
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter 
-
+from .permissions import IsAuthorOrReadOnly
+from .serializers import (AvatarSerializer, CustomUserCreateSerializer,
+                          EmailAuthSerializer, IngredientSerializer,
+                          PasswordChangeSerializer,
+                          RecipeCreateUpdateSerializer,
+                          RecipeMinifiedSerializer, RecipeSerializer,
+                          SubscriptionSerializer, TagSerializer,
+                          UserProfileSerializer)
 
 
 @api_view(['GET'])
@@ -191,23 +185,13 @@ class UserViewSet(viewsets.ModelViewSet):
         pagination_class=CustomPagination
     )
     def subscriptions(self, request):
-        subscribed_authors = User.objects.filter(
-            subscribers__user=request.user
-        ).prefetch_related('recipes')
-        page = self.paginate_queryset(subscribed_authors)
-        if page is not None:
-            serializer = SubscriptionSerializer(
-                page,
-                many=True,
-                context={'request': request}
-            )
-            return self.get_paginated_response(serializer.data)
+        user = request.user
+        queryset = User.objects.filter(subscribers__user=user)
+        pages = self.paginate_queryset(queryset)
         serializer = SubscriptionSerializer(
-            subscribed_authors,
-            many=True,
-            context={'request': request}
+            pages, many=True, context={"request": request}
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -231,15 +215,13 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_class = RecipeFilter
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly,
+    ]
     pagination_class = CustomPagination
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_permissions(self):
-        if self.action in ['destroy', 'update', 'partial_update']:
-            return [IsAuthenticated(), IsRecipeAuthor()]
-        return super().get_permissions()
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ("create", "update", "partial_update"):
@@ -265,7 +247,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
         user = request.user
-
         if request.method == 'POST':
             if Favorite.objects.filter(user=user, recipe=recipe).exists():
                 return Response(
@@ -278,10 +259,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 context={'request': request}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        favorite = get_object_or_404(Favorite, user=user, recipe=recipe)
-        favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            if not Favorite.objects.filter(user=user, recipe=recipe).exists():
+                return Response(
+                    {'error': 'Рецепт нет в избранном'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            favorite = get_object_or_404(Favorite, user=user, recipe=recipe)
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
@@ -342,7 +328,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
 
         response = HttpResponse(text, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_list.txt"'
+        )
         return response
 
     def perform_create(self, serializer):
@@ -354,8 +342,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            serializer.data, 
-            status=status.HTTP_201_CREATED, 
+            serializer.data,
+            status=status.HTTP_201_CREATED,
             headers=headers
         )
 
@@ -370,18 +358,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'id': recipe.id,
             'link': request.build_absolute_uri(recipe.get_absolute_url())
         })
-    
+
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            self.check_object_permissions(request, instance)
-            instance.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Exception as e:
+        except Http404:
             return Response(
-                {"detail": str(e)},
+                {"detail": "Рецепт не найден"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if not request.user == instance.author:
+            return Response(
+                {"detail": "У вас нет прав для удаления этого рецепта"},
                 status=status.HTTP_403_FORBIDDEN
             )
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SubscriptionViewSet(mixins.ListModelMixin,
