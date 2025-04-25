@@ -30,6 +30,8 @@ class Recipe(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = "Рецепт"
+        verbose_name_plural = "Рецепты"
         ordering = ['-created_at']
 
     def get_absolute_url(self):
