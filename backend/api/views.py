@@ -28,6 +28,7 @@ from .serializers import (AvatarSerializer, CustomUserCreateSerializer,
 
 @api_view(['GET'])
 def get_short_link(request, recipe_id):
+    """Генерирует короткую ссылку для рецепта."""
     try:
         recipe = Recipe.objects.get(id=recipe_id)
     except Recipe.DoesNotExist:
@@ -46,6 +47,7 @@ def get_short_link(request, recipe_id):
 
 
 def redirect_short_link(request, code):
+    """Перенаправляет по короткой ссылке на полный рецепт."""
     try:
         short_link = ShortLink.objects.get(code=code)
         return redirect(short_link.recipe.get_absolute_url())
@@ -57,7 +59,9 @@ def redirect_short_link(request, code):
 
 
 class CustomAuthToken(APIView):
+    """API-класс для получения токена аутентификации."""
     def post(self, request):
+        """Создает/возвращает токен для аутентифицированного пользователя."""
         serializer = EmailAuthSerializer(
             data=request.data,
             context={"request": request}
@@ -70,10 +74,12 @@ class CustomAuthToken(APIView):
 
 
 class APILogoutView(APIView):
+    """API-класс для выхода из системы (удаления токена)."""
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """Удаляет токен аутентификации текущего пользователя."""
         request.user.auth_token.delete()
         return Response(
             {"detail": "Токен успешно удален."},
@@ -82,11 +88,13 @@ class APILogoutView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """ViewSet для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
+        """Определяет сериализатор в зависимости от действия."""
         if self.action == "create":
             return CustomUserCreateSerializer
         return UserProfileSerializer
@@ -97,6 +105,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def me(self, request):
+        """Возвращает данные текущего пользователя."""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
@@ -107,6 +116,7 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer_class=PasswordChangeSerializer
     )
     def set_password(self, request):
+        """Изменяет пароль текущего пользователя."""
         serializer = PasswordChangeSerializer(
             data=request.data,
             context={'request': request}
@@ -124,6 +134,7 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path='me/avatar'
     )
     def avatar(self, request):
+        """Обновляет или удаляет аватар текущего пользователя."""
         user = request.user
         if request.method == 'PUT':
             serializer = AvatarSerializer(user, data=request.data)
@@ -144,6 +155,7 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path='subscribe'
     )
     def subscribe(self, request, pk=None):
+        """Добавляет или удаляет подписку на пользователя."""
         author = get_object_or_404(User, id=pk)
         user = request.user
 
@@ -185,6 +197,7 @@ class UserViewSet(viewsets.ModelViewSet):
         pagination_class=CustomPagination
     )
     def subscriptions(self, request):
+        """Возвращает список подписок текущего пользователя."""
         user = request.user
         queryset = User.objects.filter(subscribers__user=user)
         pages = self.paginate_queryset(queryset)
@@ -195,16 +208,19 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet для работы с тегами (только чтение)."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet для работы с ингредиентами (только чтение)."""
     serializer_class = IngredientSerializer
     pagination_class = None
 
     def get_queryset(self):
+        """Фильтрует ингредиенты по имени (если указан параметр name)."""
         queryset = Ingredient.objects.all()
         name = self.request.query_params.get('name', None)
         if name:
@@ -213,6 +229,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """ViewSet для работы с рецептами."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [
@@ -224,16 +241,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
+        """Определяет сериализатор в зависимости от действия."""
         if self.action in ("create", "update", "partial_update"):
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
 
     def get_queryset(self):
+        """Возвращает QuerySet рецептов с сортировкой по ID."""
         if self.action == 'retrieve':
             return super().get_queryset()
         return super().get_queryset().order_by('-id')
 
     def get_serializer_context(self):
+        """Добавляет request в контекст сериализатора."""
         context = super().get_serializer_context()
         context.update({'request': self.request})
         return context
@@ -245,6 +265,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='favorite'
     )
     def favorite(self, request, pk=None):
+        """Добавляет или удаляет рецепт из избранного."""
         recipe = get_object_or_404(Recipe, id=pk)
         user = request.user
         if request.method == 'POST':
@@ -276,6 +297,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='shopping_cart'
     )
     def shopping_cart(self, request, pk=None):
+        """Добавляет или удаляет рецепт из корзины покупок."""
         recipe = get_object_or_404(Recipe, id=pk)
         user = request.user
 
@@ -312,6 +334,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
+        """Генерирует текстовый файл со списком покупок."""
         ingredients = IngredientInRecipe.objects.filter(
             recipe__shopping_cart__user=request.user
         ).values(
@@ -334,9 +357,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
     def perform_create(self, serializer):
+        """Сохраняет автора рецепта при создании."""
         serializer.save(author=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        """Создает новый рецепт."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -353,6 +378,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[AllowAny]
     )
     def get_link(self, request, pk=None):
+        """Возвращает абсолютную ссылку на рецепт."""
         recipe = self.get_object()
         return Response({
             'id': recipe.id,
@@ -360,6 +386,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         })
 
     def destroy(self, request, *args, **kwargs):
+        """Удаляет рецепт (только для автора)."""
         try:
             instance = self.get_object()
         except Http404:
@@ -380,14 +407,17 @@ class SubscriptionViewSet(mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           mixins.DestroyModelMixin,
                           viewsets.GenericViewSet):
+    """ViewSet для работы с подписками на пользователей."""
     serializer_class = SubscriptionSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
     def get_queryset(self):
+        """Возвращает список пользователей, на которых подписан текущий."""
         return User.objects.filter(subscribers__user=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        """Создает подписку на автора."""
         author_id = kwargs.get('id')
         author = get_object_or_404(User, id=author_id)
 
@@ -412,6 +442,7 @@ class SubscriptionViewSet(mixins.ListModelMixin,
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
+        """Удаляет подписку на автора."""
         author_id = kwargs.get('id')
         subscription = get_object_or_404(
             Subscriptions,
