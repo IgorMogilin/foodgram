@@ -15,7 +15,7 @@ services:
     image: redlaugh/foodgram_backend
     env_file: .env
     volumes:
-      - static:/backend_static/
+      - static:/static
       - media:/app/media/
     depends_on:
       - db
@@ -31,7 +31,7 @@ services:
     ports:
       - 8000:80
     volumes:
-      - static:/static
+      - static:/static/
       - media:/app/media/
     depends_on:
       - backend
