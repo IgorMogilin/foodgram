@@ -96,6 +96,7 @@ AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
     "DEFAULT_FILTER_BACKENDS": (
@@ -122,3 +123,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://foodgramm.sytes.net',
     'http://foodgramm.sytes.net'
 ]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
