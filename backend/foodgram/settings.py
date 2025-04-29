@@ -118,3 +118,7 @@ AUTHENTICATION_BACKENDS = [
     'users.backends.EmailAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+CSRF_TRUSTED_ORIGINS = [
+    'https://foodgramm.sytes.net',
+    'http://foodgramm.sytes.net'
+]
