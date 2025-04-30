@@ -121,7 +121,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://foodgramm.sytes.net',
-    'http://foodgramm.sytes.net'
+    'http://localhost',
+    'http://127.0.0.1'
 ]
 
 CSRF_COOKIE_SECURE = True
