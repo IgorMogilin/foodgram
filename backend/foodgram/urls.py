@@ -4,34 +4,25 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import (APILogoutView, CustomAuthToken, IngredientViewSet,
-                       RecipeViewSet, TagViewSet, UserViewSet, get_short_link,
-                       redirect_short_link)
+from api.views import (IngredientViewSet,
+                       RecipeViewSet, TagViewSet, UserViewSet
+                       )
+
+app_name = 'api'
 
 router = DefaultRouter()
-router.register('users', UserViewSet, basename='users')
-router.register('tags', TagViewSet, basename='tags')
-router.register('ingredients', IngredientViewSet, basename='ingredients')
 router.register('recipes', RecipeViewSet, basename='recipes')
+router.register('users', UserViewSet, basename='users')
+router.register('ingredients', IngredientViewSet, basename='ingredients')
+router.register('tags', TagViewSet, basename='tags')
+
 
 urlpatterns = [
     path('api/auth/', include('djoser.urls')),
-    path(
-        'api/auth/token/login/',
-        CustomAuthToken.as_view(),
-        name='token_login'
-    ),
-    path(
-        'api/auth/token/logout/',
-        APILogoutView.as_view(),
-        name='token_logout'
-    ),
+    path('api/auth/', include('djoser.urls.authtoken')),
+    # path('users/me/', UserViewSet.as_view({'get': 'me'}), name='user-me'),
     path('api/', include(router.urls)),
-    path(
-        'api/recipes/<int:recipe_id>/get-link/',
-        get_short_link,
-        name='get-short-link'
-    ),
-    path('s/<str:code>/', redirect_short_link, name='redirect-short-link'),
+    path('<str:short_link>/',
+         RecipeViewSet.as_view({'get': 'get_short_link'})),
     path('admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
