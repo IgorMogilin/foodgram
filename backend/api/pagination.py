@@ -1,6 +1,6 @@
 from rest_framework.pagination import PageNumberPagination
 
-from backend.constants import PAGINATION_PAGE_SIZE
+from ..constants import PAGINATION_PAGE_SIZE
 
 
 class PageLimitPagination(PageNumberPagination):
