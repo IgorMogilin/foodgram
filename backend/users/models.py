@@ -1,6 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from backend.constants import (
+    USER_FIRSTNAME_MAX_LENGTH,
+    USER_LASTNAME_MAX_LENGTH
+)
+
 
 class User(AbstractUser):
     email = models.EmailField(
@@ -8,8 +13,11 @@ class User(AbstractUser):
         unique=True,
         error_messages={"unique": "Пользователь с таким email уже существует."}
     )
-    first_name = models.CharField('Имя', max_length=150)
-    last_name = models.CharField('Фамилия', max_length=150)
+    first_name = models.CharField('Имя', max_length=USER_FIRSTNAME_MAX_LENGTH)
+    last_name = models.CharField(
+        'Фамилия',
+        max_length=USER_LASTNAME_MAX_LENGTH
+    )
     avatar = models.ImageField(
         upload_to='avatars/',
         null=True,

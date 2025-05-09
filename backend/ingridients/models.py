@@ -1,9 +1,14 @@
 from django.db import models
 
+from backend.constants import (
+    INGREDIENT_MAX_LENGTH_NAME,
+    MAX_LENGTH_MEASUREMENT_UNIT
+)
+
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=128)
-    measurement_unit = models.CharField(max_length=64)
+    name = models.CharField(max_length=INGREDIENT_MAX_LENGTH_NAME)
+    measurement_unit = models.CharField(max_length=MAX_LENGTH_MEASUREMENT_UNIT)
 
     class Meta:
         verbose_name = "Ингредиент"

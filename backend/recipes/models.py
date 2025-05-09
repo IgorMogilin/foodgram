@@ -1,19 +1,24 @@
-from django.core.validators import MinValueValidator
-from django.db import models
-
-from ingridients.models import Ingredient
-from tags.models import Tag
-from users.models import User
-from django.conf import settings
 import random
 import string
 
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
+from backend.constants import (
+    MINIMAL_COOCKING_TIME, RANDOM_STRING_LENGTH,
+    RECIPE_MAX_LENGTH_NAME, RELATION_TYPE_MAX_LENGTH,
+    SHORT_LINK_MAX_LENGTH
+)
+from ingridients.models import Ingredient
+from tags.models import Tag
+from users.models import User
+
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=RECIPE_MAX_LENGTH_NAME)
     text = models.TextField()
     cooking_time = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(MINIMAL_COOCKING_TIME)]
     )
     image = models.ImageField(
         upload_to='recipes/',
@@ -31,7 +36,7 @@ class Recipe(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     short_link = models.CharField(
-        max_length=10,
+        max_length=SHORT_LINK_MAX_LENGTH,
         blank=True,
         null=True,
         verbose_name='Короткая ссылка'
@@ -40,7 +45,12 @@ class Recipe(models.Model):
     def generate_short_link(self):
         """Генерация случайной строки для короткой ссылки."""
         while True:
-            short_link = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+            short_link = ''.join(
+                random.choices(
+                    string.ascii_letters + string.digits,
+                    k=RANDOM_STRING_LENGTH
+                )
+            )
             if not Recipe.objects.filter(short_link=short_link).exists():
                 break
         return short_link
@@ -107,7 +117,7 @@ class UserRecipeRelation(models.Model):
         related_name='user_relations'
     )
     relation_type = models.CharField(
-        max_length=10,
+        max_length=RELATION_TYPE_MAX_LENGTH,
         choices=RELATION_CHOICES
     )
 

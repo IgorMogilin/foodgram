@@ -2,23 +2,25 @@ from autoslug import AutoSlugField
 from django.db import models
 from unidecode import unidecode
 
+from backend.constants import TAG_MAX_LENGTH_NAME, TAG_SLUG_MAX_LENGTH
 
-def custom_slugify(text):
+
+def transliterate_to_slug(text):
     """Явно объявленная функция для slugify"""
     return unidecode(text).lower().replace(' ', '-')
 
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=32,
+        max_length=TAG_MAX_LENGTH_NAME,
         unique=True,
         verbose_name="Название тега"
     )
     slug = AutoSlugField(
         populate_from='name',
         unique=True,
-        slugify=custom_slugify,
-        max_length=32,
+        slugify=transliterate_to_slug,
+        max_length=TAG_SLUG_MAX_LENGTH,
         editable=False,
         verbose_name="Слаг тега"
     )
