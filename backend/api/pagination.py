@@ -1,15 +1,14 @@
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
+
+from backend.constants import PAGINATION_PAGE_SIZE
 
 
-class CustomPagination(PageNumberPagination):
-    page_size = 6
+class PageLimitPagination(PageNumberPagination):
+    """Кастомная пагинация с ограничением количества элементов на странице.
+    По умолчанию выводит 6 элементов на страницу.
+    Позволяет переопределять количество элементов через параметр 'limit'.
+    Например: /api/recipes/?limit=10 вернет 10 элементов на странице.
+    """
+
+    page_size = PAGINATION_PAGE_SIZE
     page_size_query_param = "limit"
-
-    def get_paginated_response(self, data):
-        return Response({
-            "count": self.page.paginator.count,
-            "next": self.get_next_link(),
-            "previous": self.get_previous_link(),
-            "results": data
-        })
