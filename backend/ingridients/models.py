@@ -1,6 +1,6 @@
 from django.db import models
 
-from ..constants import (
+from api.constants import (
     INGREDIENT_MAX_LENGTH_NAME,
     MAX_LENGTH_MEASUREMENT_UNIT
 )

@@ -2,7 +2,7 @@ from autoslug import AutoSlugField
 from django.db import models
 from unidecode import unidecode
 
-from ..constants import TAG_MAX_LENGTH_NAME, TAG_SLUG_MAX_LENGTH
+from api.constants import TAG_MAX_LENGTH_NAME, TAG_SLUG_MAX_LENGTH
 
 
 def transliterate_to_slug(text):
