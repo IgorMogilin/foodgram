@@ -1,16 +1,16 @@
 import csv
 import os
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from ingridients.models import Ingredient
-from django.conf import settings
 
 
 class Command(BaseCommand):
     help = 'Импортирует ингредиенты из CSV-файла'
 
     def handle(self, *args, **kwargs):
-        file_path = os.path.join(settings.BASE_DIR, 'data/ingredients.csv')
+        file_path = os.path.join(settings.BASE_DIR, 'fixtures/ingredients.csv')
 
         if not os.path.exists(file_path):
             self.stdout.write(self.style.ERROR(f'Файл не найден: {file_path}'))
