@@ -1,10 +1,6 @@
+from api.constants import USER_FIRSTNAME_MAX_LENGTH, USER_LASTNAME_MAX_LENGTH
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-from api.constants import (
-    USER_FIRSTNAME_MAX_LENGTH,
-    USER_LASTNAME_MAX_LENGTH
-)
 
 
 class User(AbstractUser):

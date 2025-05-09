@@ -1,14 +1,12 @@
 import random
 import string
 
+from api.constants import (MINIMAL_COOCKING_TIME, RANDOM_STRING_LENGTH,
+                           RECIPE_MAX_LENGTH_NAME, RELATION_TYPE_MAX_LENGTH,
+                           SHORT_LINK_MAX_LENGTH)
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from api.constants import (
-    MINIMAL_COOCKING_TIME, RANDOM_STRING_LENGTH,
-    RECIPE_MAX_LENGTH_NAME, RELATION_TYPE_MAX_LENGTH,
-    SHORT_LINK_MAX_LENGTH
-)
 from ingridients.models import Ingredient
 from tags.models import Tag
 from users.models import User
