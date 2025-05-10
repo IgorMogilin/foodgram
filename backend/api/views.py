@@ -3,8 +3,13 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import (Ingredient, IngredientInRecipe, Recipe, Tag,
-                            UserRecipeRelation)
+from recipes.models import (
+    Ingredient,
+    IngredientInRecipe,
+    Recipe,
+    Tag,
+    UserRecipeRelation
+)
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -14,11 +19,18 @@ from users.models import Subscriptions, User
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import PageLimitPagination
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (AvatarSerializer, IngredientSerializer,
-                          RecipeCreateUpdateSerializer, RecipeSerializer,
-                          SubscriptionCreateSerializer, SubscriptionDeleteValidator,
-                          SubscriptionSerializer, TagSerializer,
-                          UserRecipeRelationSerializer, UserSerializer)
+from .serializers import (
+    AvatarSerializer,
+    IngredientSerializer,
+    RecipeCreateUpdateSerializer,
+    RecipeSerializer,
+    SubscriptionCreateSerializer,
+    SubscriptionDeleteValidator,
+    SubscriptionSerializer,
+    TagSerializer,
+    UserRecipeRelationSerializer,
+    UserSerializer
+)
 
 
 class UserViewSet(DjoserUserViewSet):
