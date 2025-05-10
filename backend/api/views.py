@@ -16,9 +16,9 @@ from .pagination import PageLimitPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AvatarSerializer, IngredientSerializer,
                           RecipeCreateUpdateSerializer, RecipeSerializer,
-                          SubscriptionCreateSerializer, TagSerializer,
-                          SubscriptionDeleteValidator, UserSerializer,
-                          SubscriptionSerializer, UserRecipeRelationSerializer)
+                          SubscriptionCreateSerializer, SubscriptionDeleteValidator,
+                          SubscriptionSerializer, TagSerializer,
+                          UserRecipeRelationSerializer, UserSerializer)
 
 
 class UserViewSet(DjoserUserViewSet):
