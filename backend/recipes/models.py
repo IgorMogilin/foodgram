@@ -84,7 +84,10 @@ class IngredientInRecipe(models.Model):
         Ingredient,
         on_delete=models.CASCADE
     )
-    amount = models.PositiveIntegerField()
+    amount = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name='Количество'
+    )
 
     class Meta:
         constraints = [
