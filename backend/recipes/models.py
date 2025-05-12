@@ -1,6 +1,10 @@
 import random
 import string
 
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
+
 from api.constants import (
     MINIMAL_COOCKING_TIME,
     RANDOM_STRING_LENGTH,
@@ -8,9 +12,6 @@ from api.constants import (
     RELATION_TYPE_MAX_LENGTH,
     SHORT_LINK_MAX_LENGTH
 )
-from django.conf import settings
-from django.core.validators import MinValueValidator
-from django.db import models
 from ingridients.models import Ingredient
 from tags.models import Tag
 from users.models import User
@@ -36,7 +37,6 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(Tag, related_name="recipes")
     created_at = models.DateTimeField(auto_now_add=True)
-
     short_link = models.CharField(
         max_length=SHORT_LINK_MAX_LENGTH,
         blank=True,
@@ -124,4 +124,11 @@ class UserRecipeRelation(models.Model):
     )
 
     class Meta:
-        unique_together = ('user', 'recipe', 'relation_type')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe', 'relation_type'],
+                name='unique_user_recipe_relation'
+            )
+        ]
+        verbose_name = 'Связь пользователя с рецептом'
+        verbose_name_plural = 'Связи пользователей с рецептами'

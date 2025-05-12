@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+
 from ingridients.models import Ingredient
 from recipes.models import Recipe, UserRecipeRelation
 from tags.models import Tag
@@ -58,9 +59,10 @@ class IngredientSearchFilter(filters.FilterSet):
     Поддерживает поиск по частичному совпадению без учета регистра.
     """
 
-    name = filters.CharFilter(
-        field_name='name', lookup_expr='icontains'
-    )
+    search_param = 'name'
+
+    def get_search_fields(self, view, request):
+        return ['name']
 
     class Meta:
         model = Ingredient

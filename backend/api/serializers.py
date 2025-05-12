@@ -18,13 +18,6 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = User
         fields = ('avatar',)
 
-    def validate(self, data):
-        if 'avatar' not in data:
-            raise serializers.ValidationError(
-                {'avatar': 'Поле avatar обязательно для загрузки.'}
-            )
-        return data
-
 
 class SubscriptionCreateSerializer(serializers.Serializer):
     """Сериализатор для создания подписки."""
