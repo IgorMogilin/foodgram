@@ -1,0 +1,4 @@
+[flake8]
+ignore = W503
+max-line-length = 79
+exclude = .git,.venv,venv,env,.env,__pycache__,*/migrations/*.py,*/settings.py,tests/*,data/*,docs/*,frontend/*,infra/*
