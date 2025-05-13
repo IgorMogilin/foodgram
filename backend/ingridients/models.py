@@ -1,8 +1,9 @@
+from django.db import models
+
 from api.constants import (
     INGREDIENT_MAX_LENGTH_NAME,
     MAX_LENGTH_MEASUREMENT_UNIT
 )
-from django.db import models
 
 
 class Ingredient(models.Model):
@@ -12,3 +13,9 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient_name_measurement'
+            )
+        ]

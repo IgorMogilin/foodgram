@@ -1,6 +1,9 @@
+import django_filters
 from django_filters import rest_framework as filters
+
 from ingridients.models import Ingredient
-from recipes.models import Recipe, UserRecipeRelation
+from recipes.models import Recipe
+from rest_framework import filters as drf_filters
 from tags.models import Tag
 
 
@@ -12,10 +15,10 @@ class RecipeFilter(filters.FilterSet):
     - Автору
     """
 
-    is_in_shopping_cart = filters.BooleanFilter(
+    is_in_shopping_cart = django_filters.CharFilter(
         method="filter_is_in_shopping_cart"
     )
-    is_favorited = filters.BooleanFilter(method="filter_is_favorited")
+    is_favorited = django_filters.CharFilter(method="filter_is_favorited")
     tags = filters.ModelMultipleChoiceFilter(
         field_name="tags__slug",
         to_field_name="slug",
@@ -34,8 +37,7 @@ class RecipeFilter(filters.FilterSet):
         user = self.request.user
         if value and user.is_authenticated:
             return queryset.filter(
-                user_relations__user=user,
-                user_relations__relation_type=UserRecipeRelation.CART
+                shoppingcart__user=user
             )
         return queryset
 
@@ -47,20 +49,20 @@ class RecipeFilter(filters.FilterSet):
         user = self.request.user
         if value and user.is_authenticated:
             return queryset.filter(
-                user_relations__user=user,
-                user_relations__relation_type=UserRecipeRelation.FAVORITE
+                favorite__user=user
             )
         return queryset
 
 
-class IngredientSearchFilter(filters.FilterSet):
+class IngredientSearchFilter(drf_filters.SearchFilter):
     """Фильтр для поиска ингредиентов по названию.
     Поддерживает поиск по частичному совпадению без учета регистра.
     """
 
-    name = filters.CharFilter(
-        field_name='name', lookup_expr='icontains'
-    )
+    search_param = 'name'
+
+    def get_search_fields(self, view, request):
+        return ['name']
 
     class Meta:
         model = Ingredient
