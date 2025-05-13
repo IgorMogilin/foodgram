@@ -20,5 +20,5 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
     path('<str:short_link>/',
-         RecipeViewSet.as_view({'get': 'get_short_link'})),
+         RecipeViewSet.as_view({'get': 'short_link_redirect'})),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
