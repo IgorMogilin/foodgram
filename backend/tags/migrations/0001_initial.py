@@ -2,6 +2,7 @@
 
 import autoslug.fields
 import tags.models
+
 from django.db import migrations, models
 
 
