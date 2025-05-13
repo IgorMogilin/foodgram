@@ -9,4 +9,5 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('tags',)
 
     def favorites_count(self, obj):
-        return obj.favorites.count()
+        """Получение количества добавлений в избранное."""
+        return obj.in_favorites.count()

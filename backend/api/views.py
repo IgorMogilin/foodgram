@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -276,6 +276,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
+        """Получение абсолюьной ссылки на рецепт."""
+
         recipe = get_object_or_404(Recipe, id=pk)
         short_link = f'{request.get_host()}/{recipe.generate_short_link()}/'
         return Response({
@@ -289,8 +291,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='short-link-redirect'
     )
     def get_short_link(self, request, recipe_id):
+        """Получение короткой ссылки на рецепт."""
+
         recipe = get_object_or_404(Recipe, id=recipe_id)
         short_link = recipe.generate_short_link()
         return Response({
             "short_link": short_link
         })
+
+    def short_link_redirect(self, request, short_link=None):
+        """Перенаправление по короткой ссылке на рецепт."""
+
+        recipe = get_object_or_404(Recipe, short_link=short_link)
+        return HttpResponseRedirect(f'/recipes/{recipe.pk}/')
