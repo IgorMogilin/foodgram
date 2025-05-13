@@ -1,15 +1,14 @@
-import uuid
 import base64
-
-from django.conf import settings
-from django.core.validators import MinValueValidator
-from django.db import models
+import uuid
 
 from api.constants import (
     MINIMAL_COOCKING_TIME,
     RECIPE_MAX_LENGTH_NAME,
-    SHORT_LINK_MAX_LENGTH
+    SHORT_LINK_MAX_LENGTH,
 )
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
 from ingridients.models import Ingredient
 from tags.models import Tag
 from users.models import User
