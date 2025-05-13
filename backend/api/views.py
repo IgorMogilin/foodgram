@@ -31,7 +31,7 @@ from .serializers import (
     SubscriptionDeleteValidator,
     SubscriptionSerializer,
     TagSerializer,
-    UserSerializer
+    UserSerializer,
 )
 
 
