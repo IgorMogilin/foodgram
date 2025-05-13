@@ -4,11 +4,12 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import (
+    Favorite,
     Ingredient,
     IngredientInRecipe,
     Recipe,
+    ShoppingCart,
     Tag,
-    UserRecipeRelation
 )
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -21,14 +22,15 @@ from .pagination import PageLimitPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     AvatarSerializer,
+    FavoriteSerializer,
     IngredientSerializer,
     RecipeCreateUpdateSerializer,
     RecipeSerializer,
+    ShoppingCartSerializer,
     SubscriptionCreateSerializer,
     SubscriptionDeleteValidator,
     SubscriptionSerializer,
     TagSerializer,
-    UserRecipeRelationSerializer,
     UserSerializer
 )
 
@@ -84,7 +86,6 @@ class UserViewSet(DjoserUserViewSet):
         if user.avatar:
             user.avatar.delete()
             user.save()
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -187,29 +188,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Добавляет рецепт в избранное или в корзину."""
 
         recipe = get_object_or_404(Recipe, id=pk)
-        user = request.user
-
         if type == 'shopping_cart':
-            relation_type = UserRecipeRelation.CART
+            serializer_class = ShoppingCartSerializer
         elif type == 'favorite':
-            relation_type = UserRecipeRelation.FAVORITE
+            serializer_class = FavoriteSerializer
         else:
             return Response(
                 {'errors': 'Неверный тип действия'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        serializer = UserRecipeRelationSerializer(
-            data={
-                'user': user.id,
-                'recipe': recipe.id,
-                'relation_type': relation_type
-            },
+        serializer = serializer_class(
+            data={'recipe': recipe.id},
             context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
         return Response(
             serializer.data,
             status=status.HTTP_201_CREATED
@@ -221,29 +214,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         recipe = get_object_or_404(Recipe, id=pk)
         user = request.user
-
         if type == 'shopping_cart':
-            relation_type = UserRecipeRelation.CART
+            relation_model = ShoppingCart
         elif type == 'favorite':
-            relation_type = UserRecipeRelation.FAVORITE
+            relation_model = Favorite
         else:
             return Response(
                 {'errors': 'Неверный тип действия'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        deleted_count, _ = UserRecipeRelation.objects.filter(
-            user=user, recipe=recipe, relation_type=relation_type
+        deleted_count, _ = relation_model.objects.filter(
+            user=user, recipe=recipe
         ).delete()
-
         if not deleted_count:
             return Response(
                 {'errors': 'Рецепт не найден в списке'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated],
+        url_path='download_shopping_cart'
+    )
     @action(
         detail=False,
         methods=['get'],
@@ -254,12 +249,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Генерирует текстовый файл со списком покупок."""
 
         ingredients = IngredientInRecipe.objects.filter(
-            recipe__user_relations__relation_type=UserRecipeRelation.CART
+            recipe__in=ShoppingCart.objects.filter(
+                user=request.user
+            ).values('recipe')
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
         ).annotate(total=Sum('amount'))
-
         text = 'Список покупок:\n\n'
         for ing in ingredients:
             text += (
@@ -267,7 +263,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 f"({ing['ingredient__measurement_unit']}) - "
                 f"{ing['total']}\n"
             )
-
         response = HttpResponse(text, content_type='text/plain')
         response['Content-Disposition'] = (
             'attachment; filename="shopping_list.txt"'
@@ -281,10 +276,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
-        """Возвращает абсолютную ссылку на рецепт."""
-
         recipe = get_object_or_404(Recipe, id=pk)
-        short_link = f'{request.get_host()}/{recipe.short_link}/'
+        short_link = f'{request.get_host()}/{recipe.generate_short_link()}/'
         return Response({
             'short-link': short_link
         })
@@ -295,7 +288,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[AllowAny],
         url_path='short-link-redirect'
     )
-    def get_short_link(self, request, short_link):
-        """Возвращает короткую ссылку для рецепта."""
-        recipe = get_object_or_404(Recipe, short_link=short_link)
-        return Response({"short_link": recipe.short_link})
+    def get_short_link(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        short_link = recipe.generate_short_link()
+        return Response({
+            "short_link": short_link
+        })

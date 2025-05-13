@@ -1,5 +1,5 @@
-import random
-import string
+import uuid
+import base64
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -7,9 +7,7 @@ from django.db import models
 
 from api.constants import (
     MINIMAL_COOCKING_TIME,
-    RANDOM_STRING_LENGTH,
     RECIPE_MAX_LENGTH_NAME,
-    RELATION_TYPE_MAX_LENGTH,
     SHORT_LINK_MAX_LENGTH
 )
 from ingridients.models import Ingredient
@@ -37,6 +35,7 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(Tag, related_name="recipes")
     created_at = models.DateTimeField(auto_now_add=True)
+
     short_link = models.CharField(
         max_length=SHORT_LINK_MAX_LENGTH,
         blank=True,
@@ -45,23 +44,11 @@ class Recipe(models.Model):
     )
 
     def generate_short_link(self):
-        """Генерация случайной строки для короткой ссылки."""
-        while True:
-            short_link = ''.join(
-                random.choices(
-                    string.ascii_letters + string.digits,
-                    k=RANDOM_STRING_LENGTH
-                )
-            )
-            if not Recipe.objects.filter(short_link=short_link).exists():
-                break
-        return short_link
-
-    def save(self, *args, **kwargs):
-        """Переопределение метода save для генерации короткой ссылки."""
-        if not self.short_link:
-            self.short_link = self.generate_short_link()
-        super().save(*args, **kwargs)
+        uuid_bytes = uuid.uuid4().bytes
+        short_link = base64.urlsafe_b64encode(
+            uuid_bytes
+        ).decode('utf-8').rstrip('=')
+        return short_link[:SHORT_LINK_MAX_LENGTH]
 
     class Meta:
         """Мета-класс для настройки порядка и отображения рецептов."""
@@ -104,34 +91,32 @@ class IngredientInRecipe(models.Model):
 
 
 class UserRecipeRelation(models.Model):
-    FAVORITE = 'favorite'
-    CART = 'cart'
-    RELATION_CHOICES = [
-        (FAVORITE, 'Избранное'),
-        (CART, 'Корзина'),
-    ]
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='recipe_relations'
     )
     recipe = models.ForeignKey(
         'Recipe',
         on_delete=models.CASCADE,
-        related_name='user_relations'
-    )
-    relation_type = models.CharField(
-        max_length=RELATION_TYPE_MAX_LENGTH,
-        choices=RELATION_CHOICES
     )
 
     class Meta:
+        abstract = True
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipe', 'relation_type'],
-                name='unique_user_recipe_relation'
+                fields=['user', 'recipe'],
+                name='unique_user_recipe_%(class)s'
             )
         ]
-        verbose_name = 'Связь пользователя с рецептом'
-        verbose_name_plural = 'Связи пользователей с рецептами'
+
+
+class Favorite(UserRecipeRelation):
+    class Meta(UserRecipeRelation.Meta):
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
+
+
+class ShoppingCart(UserRecipeRelation):
+    class Meta(UserRecipeRelation.Meta):
+        verbose_name = 'Корзина покупок'
+        verbose_name_plural = 'Корзины покупок'
