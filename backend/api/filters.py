@@ -1,9 +1,10 @@
 import django_filters
 
 from django_filters import rest_framework as filters
+from rest_framework import filters as drf_filters
+
 from ingridients.models import Ingredient
 from recipes.models import Recipe
-from rest_framework import filters as drf_filters
 from tags.models import Tag
 
 

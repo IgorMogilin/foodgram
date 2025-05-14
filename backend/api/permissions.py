@@ -1,4 +1,5 @@
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+
 from users.models import User
 
 
