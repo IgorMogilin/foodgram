@@ -1,5 +1,6 @@
-from autoslug import AutoSlugField
 from django.db import models
+
+from autoslug import AutoSlugField
 from unidecode import unidecode
 
 from api.constants import TAG_MAX_LENGTH_NAME, TAG_SLUG_MAX_LENGTH
