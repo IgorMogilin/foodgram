@@ -3,23 +3,16 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from rest_framework.routers import DefaultRouter
-
-from api.views import IngredientViewSet, RecipeViewSet, TagViewSet, UserViewSet
-
-app_name = 'api'
-
-router = DefaultRouter()
-router.register('recipes', RecipeViewSet, basename='recipes')
-router.register('users', UserViewSet, basename='users')
-router.register('ingredients', IngredientViewSet, basename='ingredients')
-router.register('tags', TagViewSet, basename='tags')
-
+from api.views import RecipeViewSet
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('djoser.urls')),
-    path('api/auth/', include('djoser.urls.authtoken')),
-    path('api/', include(router.urls)),
-    path('', include('recipes.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('api/', include('api.urls')),
+    path('<str:short_link>/',
+         RecipeViewSet.as_view({'get': 'short_link_redirect'})),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+    )
