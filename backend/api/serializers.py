@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
@@ -146,9 +145,9 @@ class UserSerializer(serializers.ModelSerializer):
 
         request = self.context.get('request')
         return bool(
-            request
-            and request.user.is_authenticated
-            and Subscriptions.objects.filter(
+            request and
+            request.user.is_authenticated and
+            Subscriptions.objects.filter(
                 user=request.user, author=obj
             ).exists()
         )
