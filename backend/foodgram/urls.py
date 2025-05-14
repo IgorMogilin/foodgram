@@ -5,6 +5,8 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from backend.api import views
+
 app_name = 'api'
 
 router = DefaultRouter()
@@ -15,10 +17,15 @@ router.register('tags', TagViewSet, basename='tags')
 
 
 urlpatterns = [
-    path('<str:short_link>/',
-         RecipeViewSet.as_view({'get': 'short_link_redirect'})),
+    # path('<str:short_link>/',
+    #      RecipeViewSet.as_view({'get': 'short_link_redirect'})),
     path('api/auth/', include('djoser.urls')),
     path('api/auth/', include('djoser.urls.authtoken')),
     path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
+    path(
+        '<str:short_link>/',
+        views.short_link_redirect,
+        name='short-link-redirect'
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
