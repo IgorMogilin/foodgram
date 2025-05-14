@@ -1,8 +1,9 @@
+from django.db import models
+
 from api.constants import (
     INGREDIENT_MAX_LENGTH_NAME,
     MAX_LENGTH_MEASUREMENT_UNIT,
 )
-from django.db import models
 
 
 class Ingredient(models.Model):
