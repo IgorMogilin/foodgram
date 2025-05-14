@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies 
         run: | 
           python -m pip install --upgrade pip 
-          pip install flake8==7.2.0 flake8-isort==6.1.2 isort==6.0.1
+          pip install flake8==7.2.0 isort==6.0.1
           pip install -r ./backend/requirements.txt
       - name: Run isort check
         run: python -m isort --settings-file setup.cfg --check-only --diff backend
