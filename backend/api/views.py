@@ -285,21 +285,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'short-link': short_link
         })
 
-    @action(
-        detail=False,
-        methods=['get'],
-        permission_classes=[AllowAny],
-        url_path='short-link-redirect'
-    )
-    def get_short_link(self, request, recipe_id):
-        """Получение короткой ссылки на рецепт."""
-
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        short_link = recipe.generate_short_link()
-        return Response({
-            "short_link": short_link
-        })
-
     def short_link_redirect(self, request, short_link=None):
         """Перенаправление по короткой ссылке на рецепт."""
 
