@@ -60,10 +60,3 @@ class IngredientSearchFilter(drf_filters.SearchFilter):
     """
 
     search_param = 'name'
-
-    def get_search_fields(self, view, request):
-        return ['name']
-
-    class Meta:
-        model = Ingredient
-        fields = ('name',)
