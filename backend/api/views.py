@@ -291,7 +291,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=['get'],
         permission_classes=[AllowAny],
-        # url_path='<str:short_link>'
         url_path='short-link-redirect'
     )
     def short_link_redirect(self, request, short_link=None):
