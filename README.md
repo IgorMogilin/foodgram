@@ -4,14 +4,6 @@
 
 ---
 
-### Проект доступен по доменному имени:
-
-[https://aderline.ru](https://aderline.ru)
-
-
----
-
-
 # Инструкция по развертыванию в Docker
 
 ## Подготовка и запуск проекта
@@ -21,7 +13,7 @@
 Для начала клонируйте репозиторий:
 
 ```bash
-git clone https://github.com/AnastasiaDeka/foodgram.git
+git clone https://github.com/IgorMogilin/foodgram.git
 cd foodgram
 ```
 ### 2.Установите Docker и Docker Compose:
@@ -200,7 +192,7 @@ sudo docker-compose exec backend python manage.py createsuperuser
 
 # Доменное имя проекта и учетные данные администратора
 
-- **Доменное имя**: foodgramm.sytes.net
+- **Доменное имя**: https://foodgramm.sytes.net
 - **Логин администратора**: platatv@mail.ru
 - **Пароль администратора**: 1maHQsaa
 
