@@ -327,10 +327,11 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'cooking_time': 'Время должно быть не менее 1 минуты'}
             )
-        if 'image' not in data or not data['image']:
-            raise serializers.ValidationError(
-                {'image': 'Изображение обязательно'}
-            )
+        if self.context['request'].method == 'POST':
+            if 'image' not in data or not data['image']:
+                raise serializers.ValidationError(
+                    {'image': 'Изображение обязательно'}
+                )
         return data
 
     def create_ingredients(self, recipe, ingredients):
