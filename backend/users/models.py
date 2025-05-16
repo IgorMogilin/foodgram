@@ -10,10 +10,15 @@ class User(AbstractUser):
         unique=True,
         error_messages={"unique": "Пользователь с таким email уже существует."}
     )
-    first_name = models.CharField('Имя', max_length=USER_FIRSTNAME_MAX_LENGTH)
+    first_name = models.CharField(
+        'Имя',
+        max_length=USER_FIRSTNAME_MAX_LENGTH,
+        blank=False
+    )
     last_name = models.CharField(
         'Фамилия',
-        max_length=USER_LASTNAME_MAX_LENGTH
+        max_length=USER_LASTNAME_MAX_LENGTH,
+        blank=False
     )
     avatar = models.ImageField(
         upload_to='avatars/',
