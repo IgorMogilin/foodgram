@@ -19,3 +19,6 @@ class Ingredient(models.Model):
                 name='unique_ingredient_name_measurement'
             )
         ]
+
+        def str(self):
+            return f"{self.name} ({self.measurement_unit})"
