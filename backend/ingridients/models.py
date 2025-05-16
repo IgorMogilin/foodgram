@@ -20,5 +20,5 @@ class Ingredient(models.Model):
             )
         ]
 
-    def str(self):
+    def __str__(self):
         return f"{self.name} ({self.measurement_unit})"
