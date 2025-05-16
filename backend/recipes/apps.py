@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.utils.translation import gettext_lazy as _
 
 
 class RecipesConfig(AppConfig):
@@ -6,5 +7,4 @@ class RecipesConfig(AppConfig):
     name = 'recipes'
 
     class Meta:
-        verbose_name = "Рецепт"
-        verbose_name_plural = "Рецепты"
+        verbose_name = _('Рецепты')
