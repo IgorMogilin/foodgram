@@ -25,8 +25,3 @@ class RecipeAdmin(admin.ModelAdmin):
         if not obj.image:
             raise ValidationError("Нельзя сохранить рецепт без изображения.")
         super().save_model(request, obj, form, change)
-
-    def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
-        if not form.instance.ingredients.exists():
-            raise ValidationError("Нельзя сохранить рецепт без ингредиентов.")
