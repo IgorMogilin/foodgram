@@ -7,12 +7,7 @@ from .models import User
 
 
 class RequiredFieldsUserCreationForm(UserCreationForm):
-    """
-    Форма создания пользователя с обязательными:
-    - email
-    - first_name
-    - last_name
-    """
+    """Форма создания пользователя с обязательными полями."""
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
@@ -26,6 +21,8 @@ class RequiredFieldsUserCreationForm(UserCreationForm):
 class UserAdmin(BaseUserAdmin):
     add_form = RequiredFieldsUserCreationForm
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
+    search_fields = ('username', 'email')
+    list_filter = ('is_staff', 'is_superuser')
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Персональная информация', {
@@ -36,4 +33,17 @@ class UserAdmin(BaseUserAdmin):
             'is_staff',
             'is_superuser'
         )}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                'username',
+                'email',
+                'first_name',
+                'last_name',
+                'password1',
+                'password2'
+            ),
+        }),
     )
