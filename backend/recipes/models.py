@@ -23,7 +23,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         upload_to='recipes/',
-        blank=True,
+        blank=False,
         default="",
         null=False
     )
