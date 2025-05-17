@@ -1,20 +1,8 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import UserCreationForm
 
 from .models import User
-
-
-class RequiredFieldsUserCreationForm(UserCreationForm):
-    """Форма создания пользователя с обязательными полями."""
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(required=True, label="Имя (обязательно)")
-    last_name = forms.CharField(required=True, label="Фамилия (обязательно)")
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
+from .forms import RequiredFieldsUserCreationForm
 
 
 @admin.register(User)
