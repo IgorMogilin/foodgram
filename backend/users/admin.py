@@ -9,8 +9,8 @@ from .models import User
 class RequiredFieldsUserCreationForm(UserCreationForm):
     """Форма создания пользователя с обязательными полями."""
     email = forms.EmailField(required=True)
-    first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=True)
+    first_name = forms.CharField(required=True, label="Имя (обязательно)")
+    last_name = forms.CharField(required=True, label="Фамилия (обязательно)")
 
     class Meta:
         model = User
