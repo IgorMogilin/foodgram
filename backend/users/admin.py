@@ -1,8 +1,21 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from rest_framework.authtoken.models import TokenProxy
 
-from .models import User
 from .forms import RequiredFieldsUserCreationForm
+from .models import User
+
+
+TokenProxy._meta.verbose_name = 'Токен'
+TokenProxy._meta.verbose_name_plural = 'Токены'
+
+
+admin.site.unregister(TokenProxy)
+
+
+@admin.register(TokenProxy)
+class TranslateTokenAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(User)
